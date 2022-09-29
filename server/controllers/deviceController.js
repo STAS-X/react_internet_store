@@ -22,7 +22,7 @@ class DeviceController {
 				rating,
 				typeId,
 				userId,
-				img: img ? filename : '',
+				...(img ? { img: filename } : {}),
 			});
 
 			if (rating) {
