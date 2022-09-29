@@ -19,7 +19,7 @@ import { useNavigate } from 'react-router-dom';
 import { observer } from 'mobx-react-lite';
 
 const NavBar = observer(() => {
-	const { user, basket } = useContext(Context);
+	const { user, basket, device } = useContext(Context);
 
 	const [userBasket, setUserBasket] = useState({});
     const history = useNavigate();
@@ -75,6 +75,7 @@ const NavBar = observer(() => {
 							variant="outline-dark"
 							onClick={() => {
 								user.setIsAuth(false);
+								device.setSelectedPage(1);
 								history(LOGIN_ROUTE);
 							}}
 						>

@@ -1,12 +1,38 @@
 import { observer } from 'mobx-react-lite';
-import React from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { Card, Col, Image } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
+import { Context } from '..';
 import star from '../assets/star.png';
 import { DEVICE_ROUTE } from '../utils/consts';
 
 const DeviceItem = ({ device, brand }) => {
+	const { user } = useContext(Context);
+	const [rate, setRate] = useState(0);
+
 	const navigate = useNavigate();
+
+	useEffect(() => {
+		if (user.isAuth) {
+			if (device.rate?.find((rate) => rate.userId === user.user.userId))
+				setRate(
+					parseFloat(
+						device.rate.find((rate) => rate.userId === user.user.userId).rate
+					).toFixed(1)
+				);
+		} else {
+			if (device.rate?.filter((rate) => rate.rate > 0).length > 0) {
+				const newRate = device.rate
+					.filter((rate) => rate.rate > 0)
+					.reduce((prev, rate) => prev + rate.rate, 0);
+				setRate(
+					parseFloat(
+						newRate / device.rate.filter((rate) => rate.rate > 0).length
+					).toFixed(1)
+				);
+			}
+		}
+	}, []);
 
 	return (
 		<Col md={3} onClick={() => navigate(DEVICE_ROUTE + '/' + device.id)}>
@@ -24,9 +50,7 @@ const DeviceItem = ({ device, brand }) => {
 						{brand?.name ? brand.name : 'Без названия'}
 					</div>
 					<div className="d-flex align-items-center ">
-						<div className="mx-1">
-							{device.rate?.length > 0 ? device.rate[0].rate : device.rating}
-						</div>
+						<div className="mx-1">{rate}</div>
 						<Image width={16} height={16} src={star} />
 					</div>
 				</div>

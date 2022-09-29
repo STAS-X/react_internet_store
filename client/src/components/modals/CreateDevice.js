@@ -6,7 +6,7 @@ import AlertingMessage from '../Alerting';
 import { createDevice, updateDevice, fetchOneDevice } from '../http/deviceApi';
 
 const CreateDevice = observer(({ show, deviceId, setDevice, onHide }) => {
-	const { device } = useContext(Context);
+	const { device, user } = useContext(Context);
 
 	const [info, setInfo] = useState([]);
 	const [deviceData, setDeviceData] = useState({});
@@ -213,13 +213,13 @@ const CreateDevice = observer(({ show, deviceId, setDevice, onHide }) => {
 						/>
 						<Form.Control
 							name="rating"
-							value={deviceData.rating || ''}
+							value={deviceData.rate?.find(rate=>rate.userId===user.user.userId)?.rate || 0}
 							onChange={changeHandler}
 							className="mt-3"
 							placeholder="Введите рейтинг устройства"
 							type="number"
 							min="0"
-							max="10"
+							max="5"
 						/>
 						<Form.Control
 							name="img"

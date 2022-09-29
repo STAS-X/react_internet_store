@@ -5,6 +5,7 @@ import {
 	Card,
 	Col,
 	Container,
+	Figure,
 	Form,
 	Image,
 	Row,
@@ -12,12 +13,15 @@ import {
 import { useParams } from 'react-router-dom';
 import { Context } from '..';
 import star from '../assets/star_rating.png';
+import ratingFull from '../assets/rating_full.png';
+import ratingEmpty from '../assets/rating_empty.png';
+
 import {
 	addToBasket,
 	deleteFromBasket,
 	updateBasketDevice,
 } from '../components/http/basketApi';
-import { fetchOneDevice } from '../components/http/deviceApi';
+import { updateDevice, fetchOneDevice } from '../components/http/deviceApi';
 import CreateDevice from '../components/modals/CreateDevice';
 
 const DevicePage = observer(() => {
@@ -27,6 +31,8 @@ const DevicePage = observer(() => {
 	const [userBasket, setUserBaket] = useState({});
 	const [device, setDevice] = useState({ info: [] });
 	const [deviceCount, setDeviceCount] = useState(0);
+	const [rating, setRating] = useState(0);
+	const [userRating, setUserRating] = useState(0);
 	const [brand, setBrand] = useState({});
 	const [deviceShow, setDeviceShow] = useState(false);
 	const basketRef = useRef();
@@ -56,7 +62,7 @@ const DevicePage = observer(() => {
 			return userBasket.devices.find((dev) => dev.id === Number(id))
 				.basket_device.count;
 		}
-		return ;
+		return;
 	};
 
 	const addDeviceInUserBasket = () => {
@@ -75,6 +81,54 @@ const DevicePage = observer(() => {
 		);
 	};
 
+	const updateDeviceRating = ({ nativeEvent }) => {
+		let newRating;
+		if (!user.isAuth) return;
+		if (Math.ceil(nativeEvent.layerX / 30) === rating && rating === 1) {
+			newRating = 0;
+		} else if (Math.ceil(nativeEvent.layerX / 30) !== rating)
+			newRating = Math.ceil(nativeEvent.layerX / 30);
+		if (newRating) {
+			setRating(newRating);
+			if (
+				device.rate.length === 0 ||
+				!device.rate.find((rate) => rate.userId === user.user.userId)
+			) {
+				device.rate.push({
+					userId: user.user.userId,
+					deviceId: device.id,
+					rate: newRating,
+				});
+			} else if (device.rate.find((rate) => rate.userId === user.user.userId)) {
+				device.rate.find((rate) => rate.userId === user.user.userId).rate =
+					newRating;
+			}
+			device.rating = newRating;
+			basketRef.current = { ...basketRef.current, device };
+			dev.setDevices([...dev.devices.filter(dev=> dev.id!==device.id), device]);
+			updateUserRating();
+		}
+	};
+
+	const updateUserRating = () => {
+		if (device.rate && device.rate.length > 0) {
+			//console.log(device.rate,'device rate data');
+			if (device.rate.find((rate) => rate.userId === user.user.userId))
+				setUserRating(
+					device.rate.find((rate) => rate.userId === user.user.userId).rate
+				);
+			if (device.rate.filter((rate) => rate.rate > 0).length > 0)
+				setUserRating(
+					parseFloat(
+						device.rate
+							.filter((rate) => rate.rate > 0)
+							.reduce((prev, rate) => prev + Number(rate.rate), 0) /
+							device.rate.filter((rate) => rate.rate > 0).length
+					).toFixed(1)
+				);
+		}
+	};
+
 	useEffect(() => {
 		setUserBaket(
 			...basket.baskets.filter((basket) => basket.userId === user.user.userId)
@@ -85,30 +139,55 @@ const DevicePage = observer(() => {
 		if (hasDeviceInUserBasket) {
 			setDeviceCount(getBasketDeviceCount());
 		}
-		basketRef.current={...basketRef.current, basketId:userBasket?.id};
+		basketRef.current = { ...basketRef.current, basketId: userBasket?.id };
 	}, [userBasket]);
 
-	useEffect(() => {
-		setBrand(dev.brands.find((brand) => brand.id === device.brandId));
-	}, [device]);
+	useEffect(()=>{
+		updateUserRating();
+	}, [device])
+
 
 	useEffect(() => {
 		fetchOneDevice(id).then((data) => {
 			setDevice(data);
+			setBrand(dev.brands.find((brand) => brand.id === data.brandId));
+			if (user.isAuth) {
+				if (data.rate.find(rate=> rate.userId === user.user.userId)) {
+					setRating(data.rate.find((rate) => rate.userId === user.user.userId).rate);
+				}
+			}
+			basketRef.current = { ...basketRef.current, device: data };
 			// setTimeout(()=>
 			// setBrand(dev.brands.find((brand) => brand.id === data.brandId)),1);
 		});
-		return () => {
-			const { basketId, count } = basketRef.current;
+		return async () => {
+			const { basketId, count, device } = basketRef.current;
 			if (count > 0) {
 				basket.updateBasketDevice(user.user.userId, Number(id), count);
-				updateBasketDevice(id, basketId, count);
+				await updateBasketDevice(id, basketId, count);
+			}
+			if (device && device.rating) {
+				console.log(device, 'new device');
+				await updateDevice(device);
 			}
 		};
 	}, []);
 
 	return (
 		<Container className="mt-3">
+			<svg width="0" height="0" viewBox="0 0 150 64">
+				<defs>
+					<clipPath id="cut-off-rating">
+						<rect
+							fill="#FFFFFF"
+							x="0"
+							y="0"
+							width={rating * 30}
+							height="64"
+						/>
+					</clipPath>
+				</defs>
+			</svg>
 			<Row>
 				<Col md={4}>
 					<Image
@@ -139,7 +218,7 @@ const DevicePage = observer(() => {
 								backgroundSize: 'cover',
 							}}
 						>
-							{device.rate?.length > 0 ? device.rate[0].rate : device.rating}
+							{userRating || 0}
 						</div>
 					</Row>
 				</Col>
@@ -155,12 +234,12 @@ const DevicePage = observer(() => {
 					>
 						<h3>цена: {device.price} руб.</h3>
 						{hasDeviceInUserBasket() && (
-							<div className="d-flex flex-row align-items-center my-2">
+							<div className="d-flex flex-column align-items-center my-2">
 								<Form.Label className="fs-4">Количество</Form.Label>
 								<Form.Control
 									className="m-2 w-auto"
 									placeholder="Введите количество товара"
-									value={deviceCount||1}
+									value={deviceCount || 1}
 									onChange={(e) => handleChangeDeviceCount(e)}
 									type="number"
 									min={1}
@@ -198,6 +277,31 @@ const DevicePage = observer(() => {
 						>
 							Редактировать товар
 						</Button>
+						<Figure
+							className="d-flex flex-column align-items-center "
+							style={{
+								marginTop: 25,
+								maxWidth: 150,
+								cursor: user.isAuth ? 'pointer' : 'not-allowed',
+							}}
+							onClick={(e) => updateDeviceRating(e)}
+						>
+							<Figure.Image
+								width={150}
+								height={64}
+								style={{ position: 'absolute' }}
+								src={ratingEmpty}
+							/>
+							<Figure.Image
+								width={150}
+								height={64}
+								style={{
+									position: 'absolute',
+									clipPath: 'url(#cut-off-rating)',
+								}}
+								src={ratingFull}
+							/>
+						</Figure>
 					</Card>
 				</Col>
 			</Row>

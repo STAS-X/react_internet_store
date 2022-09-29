@@ -12,7 +12,7 @@ import TypeBar from '../components/TypeBar';
 
 const Shop = observer(() => {
 	const { device } = useContext(Context);
-	const [page, setPage] = useState(1);
+	const [page, setPage] = useState(device.selectedPage || 1);
 
 	useEffect(() => {
 		fetchDevices(

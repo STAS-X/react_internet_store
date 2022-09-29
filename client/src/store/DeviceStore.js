@@ -9,6 +9,7 @@ export default class DeviceStore {
 		this._devicesCount = 0;
 		this._devicesPerPage = 8;
 		this._pagesPerSegment = 5;
+		this._selectedPage = 1;
 		this._selectedType = {};
 		this._selectedBrand = {};
 
@@ -37,6 +38,10 @@ export default class DeviceStore {
 
 	setPageserSegnment(perSegment) {
 		this._pagesPerSegment = perSegment;
+	}
+
+	setSelectedPage(page) {
+		this._selectedPage = page;
 	}
 
 	setSelectedType(type) {
@@ -77,6 +82,10 @@ export default class DeviceStore {
 
 	get pagesPerSegment() {
 		return this._pagesPerSegment;
+	}
+
+	get selectedPage() {
+		return this._selectedPage;
 	}
 
 	get selectedType() {

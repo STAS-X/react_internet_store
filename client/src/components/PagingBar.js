@@ -1,9 +1,13 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useContext } from 'react';
 import { Pagination } from 'react-bootstrap';
 import { useLocation } from 'react-router-dom';
+import { Context } from '..';
 import { BASKET_ROUTE } from '../utils/consts';
 
 const PagingBar = ({ activePage, setPage, perPage, perSegment, count }) => {
+
+	const {device} = useContext(Context);
+
 	const [numPages] = useState(
 		useMemo(
 			() => (Math.ceil(count / perPage) < 1 ? 1 : Math.ceil(count / perPage)),
@@ -63,6 +67,7 @@ const PagingBar = ({ activePage, setPage, perPage, perSegment, count }) => {
 				? 1
 				: Math.ceil(activePage / perSegment)
 		);
+		device.setSelectedPage(activePage);
 	}, [activePage]);
 
 	return (

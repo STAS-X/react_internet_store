@@ -22,6 +22,7 @@ const App = observer(() => {
 		fetchTypes().then((data) => device.setTypes(data));
 		fetchBrands().then((data) => device.setBrands(data));
 		fetchDevices(device.devicesPerPage, device.activePage).then((data) => {
+			console.log(data.rows, 'get data for devices')
 			device.setDevices(data.rows);
 			device.setDevicesCount(data.count);
 		});

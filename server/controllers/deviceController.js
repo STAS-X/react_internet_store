@@ -2,7 +2,7 @@ const { Device, DeviceInfo, Rating } = require('../models/models');
 const ApiError = require('../error/ApiError');
 const uuid = require('uuid');
 const path = require('path');
-const { Op } = require('sequelize');
+const { Op, col } = require('sequelize');
 
 class DeviceController {
 	async create(req, res, next) {
@@ -55,7 +55,7 @@ class DeviceController {
 			const { id } = req.params;
 			let { name, price, rating, brandId, typeId, info } = req.body;
 
-			const { img } = req.files;
+			const { img } = req.files ? req.files : {};
 			const { id: userId } = req.user;
 
 			if (!id) {
@@ -104,23 +104,15 @@ class DeviceController {
 						userId,
 					});
 				}
-			} else {
-				const rateCount = await DeviceInfo.destroy({
-					where: { deviceId: id, userId },
-				});
 			}
+			// } else {
+			// 	const rateCount = await DeviceInfo.destroy({
+			// 		where: { deviceId: id, userId },
+			// 	});
+			// }
 
+			// Обновляем характеристики устройства
 			if (info) {
-				try {
-					console.log(
-						info,
-						info.length,
-						JSON.parse(info),
-						'update info for device'
-					);
-				} catch (e) {
-					console.log(e, 'error');
-				}
 				info = JSON.parse(info);
 				if (info.length > 0) {
 					const infoCount = await DeviceInfo.destroy({
@@ -145,7 +137,7 @@ class DeviceController {
 					brandId,
 					typeId,
 					userId,
-					img: img ? filename : '',
+					...(img ? { img: filename } : {}),
 				},
 				{
 					where: { id },
@@ -158,20 +150,15 @@ class DeviceController {
 				attributes: {
 					include: ['createdAt'],
 				},
-				include: userId
-					? [
-							{ model: DeviceInfo, as: 'info' },
-							{
-								model: Rating,
-								as: 'rate',
-								where: { userId },
-								order: [['createdAt', 'DESC']],
-								limit: 1,
-							},
-					  ]
-					: [{ model: DeviceInfo, as: 'info' }],
+				include: [
+					{ model: DeviceInfo, as: 'info' },
+					{
+						model: Rating,
+						as: 'rate',
+						where: { deviceId: id },
+					},
+				],
 			});
-			console.log(device, 'updated device');
 
 			return res.json(device);
 		} catch (e) {
@@ -185,21 +172,20 @@ class DeviceController {
 		limit = limit || 10;
 		let offset = (page - 1) * limit;
 
-		const userId = req.user?.id;
+		//const userId = req.user?.id;
 
 		const devices = await Device.findAndCountAll({
 			where: Object.assign({}, brandId && { brandId }, typeId && { typeId }),
+			order: ['id'],
 			attributes: {
 				include: ['createdAt'],
 			},
-			include: userId
-				?	[{
-							model: Rating,
-							as: 'rate',
-							where: { userId },
-							order: [['createdAt', 'DESC']],
-							limit: 1,
-						}]:[],
+			include: [
+				{
+					model: Rating,
+					as: 'rate',
+				},
+			],
 			limit,
 			offset,
 		});
@@ -208,7 +194,7 @@ class DeviceController {
 
 	async getById(req, res, next) {
 		const { id } = req.params;
-		const userId = req.user?.id;
+		//const userId = req.user?.id;
 
 		if (!id) {
 			return next(ApiError.badRequest('Не задан параметр ID для устройства!'));
@@ -218,24 +204,19 @@ class DeviceController {
 			attributes: {
 				include: ['createdAt'],
 			},
-			include: userId
-				? [
-						{ model: DeviceInfo, as: 'info' },
-						{
-							model: Rating,
-							as: 'rate',
-							where: { userId },
-							order: [['createdAt', 'DESC']],
-							limit: 1,
-						},
-				  ]
-				: [{ model: DeviceInfo, as: 'info' }],
+			include: [
+				{ model: DeviceInfo, as: 'info' },
+				{
+					model: Rating,
+					as: 'rate',
+				},
+			],
 		});
 
 		if (!device) {
-			return next(ApiError.badRequest(`Не найдено устройство ${id}!`));
+			return next(ApiError.badRequest(`Не найдено устройство [${id}]!`));
 		}
-		console.log(device.rate, 'rate');
+		//console.log(device.rate, 'rate');
 		return res.json(device);
 	}
 }

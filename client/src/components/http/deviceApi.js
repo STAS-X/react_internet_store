@@ -40,8 +40,8 @@ export const updateDevice = async (device) => {
 	//console.log(device.info, 'device to update');
 	const deviceData = new FormData();
 	Object.keys(device).map((key) => {
-		const args = [key, device[key]];
-		if (key === 'img') args.push(device[key].name);
+		const args = [key, key === 'info' ? JSON.stringify(device[key]) : device[key]];
+		if (key === 'img' && device[key].name) args.push(device[key].name);
 		deviceData.append.apply(deviceData, args);
 	});
 

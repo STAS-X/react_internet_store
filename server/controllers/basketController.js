@@ -48,7 +48,6 @@ class BasketController {
 
 	async clearBasket(req, res, next) {
 		const { id } = req.params;
-		console.log(id, 'basketId to clear')
 		
 		const basketCount = await BasketDevice.destroy({
 			where: { basketId:id },
@@ -81,6 +80,7 @@ class BasketController {
 	async getAll(req, res) {
 		try {
 			const response = await Basket.findAll({
+				order:['id'],
 				include: [
 					{
 						model: Device,
