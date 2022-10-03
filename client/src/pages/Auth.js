@@ -4,10 +4,17 @@ import { Container, Form, Button } from 'react-bootstrap';
 import Card from 'react-bootstrap/Card';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { Context } from '..';
+import AlertingMessage from '../components/Alerting';
 import { login, registration } from '../components/http/userAPI';
 import { REGISTRATION_ROUTE, LOGIN_ROUTE, SHOP_ROUTE } from '../utils/consts';
 
 const Auth = observer(() => {
+
+	const [showAlert, setShowAlert] = useState(false);
+	const [typeAlert, setTypeAlert] = useState('');
+	const [headAlert, setHeadAlert] = useState('');
+	const [messageAlert, setMessageAlert] = useState('');
+
 	const location = useLocation();
 	const navigate = useNavigate();
 
@@ -43,13 +50,28 @@ const Auth = observer(() => {
 			} else {
 				response = await registration(email, password);
 			}
-		} catch (e) {}
+		} catch (e) {
+			// Показываем всплывающую подсказку, при возникновении ошибки
+			setHeadAlert('Сообщение об ошибке');
+			setMessageAlert(`При ${isLogin?'входе':'регистрации'} возникла ошибка: ${e.message}`);
+			setTypeAlert('danger');
+			setShowAlert(true);
+		}
 	};
 	return (
 		<Container
-			className="d-flex justify-content-center align-items-center"
+			className="d-flex flex-column justify-content-center align-items-center"
 			style={{ height: window.innerHeight - 54 }}
 		>
+
+			<AlertingMessage
+				show={showAlert}
+				setShow={setShowAlert}
+				type={typeAlert}
+				headText={headAlert}
+				messageText={messageAlert}
+			/>
+
 			<Card style={{ width: 600 }} className="p-5">
 				<h2 className="m-auto">{isLogin ? 'Авторизация' : 'Регистрация'}</h2>
 				<Form className="d-flex flex-column">

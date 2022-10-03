@@ -74,7 +74,7 @@ const PagingBar = ({ activePage, setPage, perPage, perSegment, count }) => {
 		<div
 			className="position-absolute"
 			style={{
-				top: '60%',
+				top: '70%',
 				left:
 					pathname === '/order'
 						? '40%'
