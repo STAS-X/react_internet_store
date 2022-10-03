@@ -17,15 +17,17 @@ export default class BasketStore {
 				.devices.push({ ...device, basket_device: { count: 1 } });
 	}
 
-	updateBasketDevice(userId, deviceId, count) {
+	updateBasketDevice(userId, deviceId, { count, rating }) {
 		if (
 			this._baskets
 				.find((basket) => basket.userId === userId)
 				?.devices.findIndex((dev) => dev.id === deviceId) > -1
-		)
+		) 
 			this._baskets
 				.find((basket) => basket.userId === userId)
 				.devices.find((dev) => dev.id === deviceId).basket_device.count = count;
+
+		
 	}
 
 	removeFromBasket(userId, device) {

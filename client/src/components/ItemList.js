@@ -23,7 +23,7 @@ const ItemList = observer(() => {
 			{userBasket?.devices?.map((dev) => (
 				<DeviceItem
 					key={dev.id}
-					device={dev}
+					device={device.devices.find(device=> device.id===dev.id)}
 					brand={device.brands.find((brand) => brand.id === dev.brandId)}
 				/>
 			))}

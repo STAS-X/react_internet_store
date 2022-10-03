@@ -84,11 +84,11 @@ const DevicePage = observer(() => {
 	const updateDeviceRating = ({ nativeEvent }) => {
 		let newRating;
 		if (!user.isAuth) return;
-		if (Math.ceil(nativeEvent.layerX / 30) === rating && rating === 1) {
+		if (Math.ceil(nativeEvent.layerX / 30) === rating) {
 			newRating = 0;
 		} else if (Math.ceil(nativeEvent.layerX / 30) !== rating)
 			newRating = Math.ceil(nativeEvent.layerX / 30);
-		if (newRating) {
+		if (newRating>=0) {
 			setRating(newRating);
 			if (
 				device.rate.length === 0 ||
@@ -163,10 +163,16 @@ const DevicePage = observer(() => {
 		return async () => {
 			const { basketId, count, device } = basketRef.current;
 			if (count > 0) {
-				basket.updateBasketDevice(user.user.userId, Number(id), count);
-				await updateBasketDevice(id, basketId, count);
+				basket.updateBasketDevice(user.user.userId, Number(id), {
+					count,
+					rating: device.rating,
+				});
+				await updateBasketDevice(id, basketId, {
+					count,
+					rating: device.rating,
+				});
 			}
-			if (device && device.rating) {
+			if (device && device.rating>=0) {
 				console.log(device, 'new device');
 				await updateDevice(device);
 			}
@@ -218,7 +224,7 @@ const DevicePage = observer(() => {
 								backgroundSize: 'cover',
 							}}
 						>
-							{userRating || 0}
+							{userRating || '0.0'}
 						</div>
 					</Row>
 				</Col>
@@ -227,7 +233,7 @@ const DevicePage = observer(() => {
 						className="d-flex flex-column align-items-center justify-content-center"
 						style={{
 							width: 300,
-							height: 300,
+							height: 360,
 							fontSize: 32,
 							border: '5px solid lightgray',
 						}}
