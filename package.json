@@ -5,7 +5,7 @@
 		"start": "cd ./server && cross-env NODE_ENV=production node index.js",
 		"serve": "cross-env NODE_ENV=development nodemon --harmony index.js",
 		"dev": "concurrently \"npm run serve\" \"npm run client\"",
-		"build": "concurrently \"npm run start\" \"npm run client\""
+		"build": "concurrently \"npm run start\""
 	},
 	"dependencies": {
 		"bcrypt": "^5.0.1",
