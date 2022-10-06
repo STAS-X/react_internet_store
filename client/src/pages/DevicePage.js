@@ -24,8 +24,8 @@ import {
 import { updateDevice, fetchOneDevice } from '../components/http/deviceApi';
 import CreateDevice from '../components/modals/CreateDevice';
 
-const DevicePage = observer(() => {
-	const { device: dev, user, basket } = useContext(Context);
+const DevicePage = () => {
+	const { device: dev, user, basket, order } = useContext(Context);
 
 	const { id } = useParams();
 	const [userBasket, setUserBaket] = useState({});
@@ -88,7 +88,7 @@ const DevicePage = observer(() => {
 			newRating = 0;
 		} else if (Math.ceil(nativeEvent.layerX / 30) !== rating)
 			newRating = Math.ceil(nativeEvent.layerX / 30);
-		if (newRating>=0) {
+		if (newRating >= 0) {
 			setRating(newRating);
 			if (
 				device.rate.length === 0 ||
@@ -105,7 +105,10 @@ const DevicePage = observer(() => {
 			}
 			device.rating = newRating;
 			basketRef.current = { ...basketRef.current, device };
-			dev.setDevices([...dev.devices.filter(dev=> dev.id!==device.id), device]);
+			dev.setDevices([
+				...dev.devices.filter((dev) => dev.id !== device.id),
+				device,
+			]);
 			updateUserRating();
 		}
 	};
@@ -142,18 +145,19 @@ const DevicePage = observer(() => {
 		basketRef.current = { ...basketRef.current, basketId: userBasket?.id };
 	}, [userBasket]);
 
-	useEffect(()=>{
+	useEffect(() => {
 		updateUserRating();
-	}, [device])
-
+	}, [device]);
 
 	useEffect(() => {
 		fetchOneDevice(id).then((data) => {
 			setDevice(data);
 			setBrand(dev.brands.find((brand) => brand.id === data.brandId));
 			if (user.isAuth) {
-				if (data.rate.find(rate=> rate.userId === user.user.userId)) {
-					setRating(data.rate.find((rate) => rate.userId === user.user.userId).rate);
+				if (data.rate.find((rate) => rate.userId === user.user.userId)) {
+					setRating(
+						data.rate.find((rate) => rate.userId === user.user.userId).rate
+					);
 				}
 			}
 			basketRef.current = { ...basketRef.current, device: data };
@@ -165,16 +169,28 @@ const DevicePage = observer(() => {
 			if (count > 0) {
 				basket.updateBasketDevice(user.user.userId, Number(id), {
 					count,
-					rating: device.rating,
 				});
-				await updateBasketDevice(id, basketId, {
-					count,
-					rating: device.rating,
-				});
+				await updateBasketDevice(id, basketId, count);
 			}
-			if (device && device.rating>=0) {
-				console.log(device, 'new device');
-				await updateDevice(device);
+			console.log(device, 'test to update');
+			if (device && !isNaN(device.rating)) {
+				// Обновляем ретинг устройства для данного пользователя
+				device.rate[
+					device.rate.findIndex((rate) => rate.userId === user.user.userId)
+				].rate = device.rating;
+
+				// Обновляем ретинг устройства в сторе корзины и заказа
+				basket.updateDevice(user.user.userId, device);
+				order.updateDevice(user.user.userId, device);
+
+				// Обновляем данные устройства в БД
+				updateDevice(device).then((data) => {
+					// setTimeout(() => {
+					// 	basket.updateDevice(user.user.userId, data);
+					// 	order.updateDevice(user.user.userId, data);
+					// }, 100);
+					console.log(data, 'device updated')
+				});
 			}
 		};
 	}, []);
@@ -184,13 +200,7 @@ const DevicePage = observer(() => {
 			<svg width="0" height="0" viewBox="0 0 150 64">
 				<defs>
 					<clipPath id="cut-off-rating">
-						<rect
-							fill="#FFFFFF"
-							x="0"
-							y="0"
-							width={rating * 30}
-							height="64"
-						/>
+						<rect fill="#FFFFFF" x="0" y="0" width={rating * 30} height="64" />
 					</clipPath>
 				</defs>
 			</svg>
@@ -334,5 +344,5 @@ const DevicePage = observer(() => {
 			/>
 		</Container>
 	);
-});
+};
 export default DevicePage;

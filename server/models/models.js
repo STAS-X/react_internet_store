@@ -22,7 +22,7 @@ const BasketDevice = sequelize.define(
 			type: DataTypes.INTEGER,
 			defaultValue: 1,
 		},
-	},
+	}
 	// {
 	// 	hooks: {
 	// 		beforeUpdate: (data, options) => {
@@ -30,7 +30,7 @@ const BasketDevice = sequelize.define(
 	// 			if (data.count>10) data.count = Math.ceil(Math.random()*10);
 	// 		},
 	// 		afterUpdate: (data, options) => {
-	// 			console.log(data.toJSON(), options, 'hooks after update');				
+	// 			console.log(data.toJSON(), options, 'hooks after update');
 	// 		},
 	// 	},
 	// }
@@ -38,7 +38,16 @@ const BasketDevice = sequelize.define(
 
 const Order = sequelize.define('order', {
 	id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-	uuid: { type: DataTypes.UUID, unique: true, allowNull: false, defaultValue: DataTypes.UUIDV4 },
+	uuid: {
+		type: DataTypes.UUID,
+		unique: true,
+		allowNull: false,
+		defaultValue: DataTypes.UUIDV4,
+	},
+	totalprice: {
+		type: DataTypes.FLOAT,
+		defaultValue: 0,
+	},
 });
 
 const OrderDevice = sequelize.define(

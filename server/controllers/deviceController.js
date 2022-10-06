@@ -12,7 +12,7 @@ class DeviceController {
 			const { img } = req.files;
 			const { id: userId } = req.user;
 
-			let filename = uuid.v4() + img?.name.split('.')[1];
+			let filename = uuid.v4() + '.' + img?.name.split('.')[1];
 			img?.mv(path.resolve(__dirname, '..', 'static', filename));
 
 			const device = await Device.create({
@@ -64,7 +64,7 @@ class DeviceController {
 				);
 			}
 
-			let filename = uuid.v4() + img?.name.split('.')[1];
+			let filename = uuid.v4() + '.' + img?.name.split('.')[1];
 			img?.mv(path.resolve(__dirname, '..', 'static', filename));
 
 			const hasDevice = await Device.findOne({
@@ -114,20 +114,21 @@ class DeviceController {
 			// Обновляем характеристики устройства
 			if (info) {
 				info = JSON.parse(info);
+				console.log(info, 'info to device update');
 				if (info.length > 0) {
 					const infoCount = await DeviceInfo.destroy({
 						where: { deviceId: id },
 					});
 					console.log(`Удалено ${infoCount} характеристик устройства`);
+					if (infoCount > 0)
+						info.forEach(async (data) => {
+							await DeviceInfo.create({
+								title: data.title,
+								description: data.description,
+								deviceId: id,
+							});
+						});
 				}
-
-				info.forEach(async (data) => {
-					await DeviceInfo.create({
-						title: data.title,
-						description: data.description,
-						deviceId: id,
-					});
-				});
 			}
 			// Обновляем текущее устройство
 			await Device.update(
@@ -162,6 +163,7 @@ class DeviceController {
 
 			return res.json(device);
 		} catch (e) {
+			console.log(e, 'error update device');
 			next(ApiError.badRequest({ message: e.message }));
 		}
 	}

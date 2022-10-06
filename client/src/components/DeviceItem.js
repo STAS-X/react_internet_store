@@ -1,12 +1,12 @@
 import { observer } from 'mobx-react-lite';
 import React, { useContext, useEffect, useState } from 'react';
 import { Card, Col, Image } from 'react-bootstrap';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Context } from '..';
 import star from '../assets/star.png';
 import { DEVICE_ROUTE } from '../utils/consts';
 
-const DeviceItem = ({ device, brand }) => {
+const DeviceItem = observer(({ device, brand }) => {
 	const { user } = useContext(Context);
 	const [rate, setRate] = useState(0);
 
@@ -14,14 +14,16 @@ const DeviceItem = ({ device, brand }) => {
 
 	useEffect(() => {
 		if (user.isAuth) {
-			if (device.rate?.find((rate) => rate.userId === user.user.userId))
+			console.log(device,'set new device rate')
+			if (
+				device.rate?.findIndex((rate) => rate.userId === user.user.userId) > -1
+			) {
 				setRate(
 					parseFloat(
 						device.rate.find((rate) => rate.userId === user.user.userId).rate
 					).toFixed(1)
 				);
-		} else {
-			if (device.rate?.filter((rate) => rate.rate > 0).length > 0) {
+			} else if (device.rate?.filter((rate) => rate.rate > 0).length > 0) {
 				const newRate = device.rate
 					.filter((rate) => rate.rate > 0)
 					.reduce((prev, rate) => prev + rate.rate, 0);
@@ -64,5 +66,5 @@ const DeviceItem = ({ device, brand }) => {
 			</Card>
 		</Col>
 	);
-};
+});
 export default DeviceItem;

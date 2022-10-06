@@ -1,0 +1,11 @@
+{
+  "files": {
+    "main.js": "/static/js/main.1db13fbe.js",
+    "static/media/baket.png": "/static/media/baket.3f2c90a601251586d463.png",
+    "index.html": "/index.html",
+    "main.1db13fbe.js.map": "/static/js/main.1db13fbe.js.map"
+  },
+  "entrypoints": [
+    "static/js/main.1db13fbe.js"
+  ]
+}

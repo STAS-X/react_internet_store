@@ -1,4 +1,4 @@
-const { Order, OrderDevice, Device } = require('../models/models');
+const { Order, OrderDevice, Rating, Device } = require('../models/models');
 const sequelize = require('../db');
 const { col, Op } = require('sequelize');
 const ApiError = require('../error/ApiError');
@@ -11,9 +11,16 @@ class OrderController {
 
 		try {
 			console.log(devices, userId, 'new order');
-			// Добавляем в базу новый заказ
-			order = await Order.create({ userId });
+
+			// Считаем общую стоимость и добавляем в базу новый заказ
+			const totalPrice = devices.reduce(
+				(total, cur) => total + cur.price * cur.basket_device.count,
+				0
+			);
+
+			order = await Order.create({ userId, totalPrice });
 			console.log(order, 'new order');
+
 			// Обновляем поле orderId для всех устройств в заказе
 			const updatedDevices = devices.map((dev) => {
 				return {
@@ -41,7 +48,9 @@ class OrderController {
 				});
 			} else {
 				return next(
-					ApiError.badRequest(`При оформлении заказа ${order.uuid} произошла ошибка!`)
+					ApiError.badRequest(
+						`При оформлении заказа ${order.uuid} произошла ошибка!`
+					)
 				);
 			}
 
@@ -59,6 +68,12 @@ class OrderController {
 				include: [
 					{
 						model: Device,
+						include: [
+							{
+								model: Rating,
+								as: 'rate',
+							},
+						],
 						through: {
 							attributes: ['id', 'deviceId', 'count'],
 						},
@@ -83,6 +98,12 @@ class OrderController {
 			include: [
 				{
 					model: Device,
+					include: [
+						{
+							model: Rating,
+							as: 'rate',
+						},
+					],
 					through: {
 						attributes: ['id', 'deviceId', 'count'],
 					},

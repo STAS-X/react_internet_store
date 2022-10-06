@@ -1,6 +1,14 @@
 import { observer } from 'mobx-react-lite';
 import React, { useContext, useEffect, useState } from 'react';
-import { Badge, Button, Col, Container, ListGroup, Row, Tab } from 'react-bootstrap';
+import {
+	Badge,
+	Button,
+	Col,
+	Container,
+	ListGroup,
+	Row,
+	Tab,
+} from 'react-bootstrap';
 import { Context } from '..';
 import { clearBasket } from '../components/http/basketApi';
 import { create } from '../components/http/orderApi';
@@ -89,13 +97,14 @@ const OrderPage = observer(() => {
 													</div>
 													<div>
 														{`Стоимость заказа - ${format(
-															order.devices.reduce(
-																(prev, cur) =>
-																	prev +
-																	Number(cur.order_device.count) *
-																		parseFloat(cur.price),
-																0
-															)
+															order.totalprice ||
+																order.devices.reduce(
+																	(prev, cur) =>
+																		prev +
+																		Number(cur.order_device.count) *
+																			parseFloat(cur.price),
+																	0
+																)
 														)} руб.`}{' '}
 													</div>
 												</div>

@@ -6,7 +6,7 @@ import AlertingMessage from '../Alerting';
 import { createDevice, updateDevice, fetchOneDevice } from '../http/deviceApi';
 
 const CreateDevice = observer(({ show, deviceId, setDevice, onHide }) => {
-	const { device, user } = useContext(Context);
+	const { device, user, basket, order } = useContext(Context);
 
 	const [info, setInfo] = useState([]);
 	const [deviceData, setDeviceData] = useState({});
@@ -107,6 +107,10 @@ const CreateDevice = observer(({ show, deviceId, setDevice, onHide }) => {
 				//setDeviceData({});
 				//setInfo([]);
 				onHide();
+				// Обновляем устройство, если оно присутствует в корзине и истории заказов
+				basket.updateDevice(user.user.userId, data);
+				order.updateDevice(user.user.userId, data);
+
 				// Показываем всплывающую подсказку, если обновление прошло успешно
 				setHeadAlert('Сообщение об обновлении');
 				setMessageAlert(

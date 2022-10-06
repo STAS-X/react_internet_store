@@ -1,4 +1,4 @@
-const { Basket, BasketDevice, Device } = require('../models/models');
+const { Basket, BasketDevice, Device, Rating } = require('../models/models');
 const sequelize = require('../db');
 const { col, Op } = require('sequelize');
 const ApiError = require('../error/ApiError');
@@ -48,11 +48,11 @@ class BasketController {
 
 	async clearBasket(req, res, next) {
 		const { id } = req.params;
-		
+
 		const basketCount = await BasketDevice.destroy({
-			where: { basketId:id },
+			where: { basketId: id },
 		});
-	
+
 		return res.json({ id });
 	}
 
@@ -80,10 +80,16 @@ class BasketController {
 	async getAll(req, res) {
 		try {
 			const response = await Basket.findAll({
-				order:['id'],
+				order: ['id'],
 				include: [
 					{
 						model: Device,
+						include: [
+							{
+								model: Rating,
+								as: 'rate',
+							},
+						],
 						through: {
 							attributes: ['id', 'deviceId', 'count'],
 						},

@@ -41,6 +41,7 @@ const BasketPage = observer(() => {
 	};
 
 	useEffect(() => {
+		console.log('user basket changed');
 		setUserBasket(
 			...basket.baskets.filter((bsk) => bsk.userId === user.user.userId)
 		);
